@@ -1,5 +1,6 @@
 from patch import Patch
 from vertex import Vertex
+from utils import get_rotations, rotate
 
 class Pattern:
     def __init__(self, encoding: str):
@@ -89,6 +90,9 @@ class Pattern:
             '''
             recovers the boundary sides of the pattern from the face graph and faces
             '''
+            if not face_graph:
+                return []
+
             total_boundaries = 0
             for face in face_graph:
                 for i in range(4):
@@ -131,15 +135,34 @@ class Pattern:
         if the pattern is feasible for the given patch, return the parameters.
         otherwise, return None.
         '''
-        pass
+        # just checks side lengths for now
+        if len(self.sides) != len(patch.sides):
+            return None
 
-    def expand(self, params: list[float]):
+        side_lengths = [len(side) for side in self.sides]
+        patch_side_lengths = [len(side) for side in patch.sides]
+
+        rotations = get_rotations(side_lengths)
+        for i in range(len(rotations)):
+            if rotations[i] == patch_side_lengths:
+                return {"rotations": i}
+
+        # compare the lengths of the sides for all rotations of the pattern
+        # for i in range(len(self.sides)):
+
+    def expand(self, params: dict[str, float]):
         '''
         expands the pattern into an expanded pattern using the given parameters.
         '''
-        pass
+        p = Pattern('')
+        p.num_verts = self.num_verts
+        p.sides = rotate([side.copy() for side in self.sides], params["rotations"])
+        p.vert_graph = [lst.copy() for lst in self.vert_graph]
+        p.faces = [face.copy() for face in self.faces]
+        p.verts = [Vertex() for _ in range(p.num_verts)]
+        return p
 
-    def fit(self, patch: Patch, surface):
+    def fit(self, patch: Patch):
         '''
         fits the pattern vertices to the patch.
         '''
@@ -176,22 +199,6 @@ class Pattern:
                     verts.append(total / len(neighbors))
             return verts
 
-        def project():
-            def project_vert(vert: Vertex):
-                pass
-
-            for vert in self.verts:
-                # if vert in self.boundary_verts:
-                continue
-
-                # idk what this does
-                # auto& pn = patch->data(v).laplaceIterative.value;
-                # if (pn.tail(3).isZero())
-                #     continue;
-
-                # and normalize?
-                project_vert(vert)
-
         assert(len(self.sides) == len(patch.sides))
         assert(all([len(self.sides[i]) == len(patch.sides[i]) for i in range(len(self.sides))]))
 
@@ -204,20 +211,18 @@ class Pattern:
 
         num_iterations = 5
         for _ in range(num_iterations):
-            print(self.verts)
             self.verts = laplace_smooth_iter()
-            project()
+
+    def to_json(self):
+        verts = [vert.to_json() for vert in self.verts]
+        return {'verts': verts, 'faces': self.faces, 'sides': self.sides}
 
 
 # p = Pattern('0102######0304########0403####')
 # p = Pattern('01##########')
-# print(p.faces)
-# print(p.vert_graph)
-# print(p.sides)
-
 p = Pattern('0102####03040405######0606070207######080408##05####07')
 patch = Patch([[(0, 0, 0), (1, 0, 0), (2, 0, 0), (3, 0, 0)], [(3, 0, 0), (3, 1, 0), (3, 2, 0), (3, 3, 0)], [(3, 3, 0), (2, 3, 0), (1, 3, 0), (0, 3, 0)], [(0, 3, 0), (0, 2, 0), (0, 1, 0), (0, 0, 0)]])
+p.fit(patch)
 print(p.faces)
-# print(p.verts)
-p.fit(patch, None)
 print(p.verts)
+print(p.sides)

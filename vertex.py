@@ -19,4 +19,7 @@ class Vertex:
         return Vertex(self.x / other, self.y / other, self.z / other)
 
     def __repr__(self):
-        return f'Vertex({self.x}, {self.y}, {self.z})'
+        return f'({self.x}, {self.y}, {self.z})'
+    
+    def to_json(self):
+        return [self.x, self.y, self.z]
