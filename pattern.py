@@ -22,7 +22,7 @@ class Pattern:
         def decode():
             if encoding == '':
                 return []
-            face_graph = [[-1] * 4 for i in range(len(encoding) // 6)]
+            face_graph = [[-1] * 4 for _ in range(len(encoding) // 6)]
             last_seen = 0
             for i in range(len(face_graph)): # 6 because 2 chars for a hex number times 3 numbers per face
                 for j in range(3): # the string only has 3 numbers per face, the first index is implied
@@ -51,9 +51,18 @@ class Pattern:
                 if 0 <= face_graph[i][1] < i:
                     neighbor = face_graph[i][1]
                     _, reuse_i2 = INDEX_MAP[face_graph[neighbor].index(i)]
+                    print(i, neighbor, reuse_i2, faces)
                     face.append(faces[neighbor][reuse_i2])
 
-                assert not (0 <= face_graph[i][2] < i)
+                if 0 <= face_graph[i][2] < i:
+                    neighbor = face_graph[i][2]
+                    reuse_i1, reuse_i2 = INDEX_MAP[face_graph[neighbor].index(i)]
+                    if len(face) == 2:
+                        face.extend([reuse_i1, reuse_i2])
+                    else:
+                        face.append(faces[neighbor][reuse_i2])
+                    faces.append(face)
+                    continue
 
                 if 0 <= face_graph[i][3] < i:
                     if len(face) == 2:
@@ -209,7 +218,7 @@ class Pattern:
 
         self.verts = laplace_smooth_direct()
 
-        num_iterations = 5
+        num_iterations = 10
         for _ in range(num_iterations):
             self.verts = laplace_smooth_iter()
 
