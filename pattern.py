@@ -51,7 +51,6 @@ class Pattern:
                 if 0 <= face_graph[i][1] < i:
                     neighbor = face_graph[i][1]
                     _, reuse_i2 = INDEX_MAP[face_graph[neighbor].index(i)]
-                    print(i, neighbor, reuse_i2, faces)
                     face.append(faces[neighbor][reuse_i2])
 
                 if 0 <= face_graph[i][2] < i:
@@ -98,40 +97,34 @@ class Pattern:
         def get_sides(face_graph: list[list[int]], faces: list[list[int]]):
             '''
             recovers the boundary sides of the pattern from the face graph and faces
+            assumes corners vertices must only be part of one face
             '''
             if not face_graph:
                 return []
 
-            total_boundaries = 0
-            for face in face_graph:
-                for i in range(4):
-                    if face[i] == -1:
-                        total_boundaries += 1
+            corners = set()
+            for i in range(len(face_graph)):
+                for j in range(4):
+                    if face_graph[i][j] == -1 and face_graph[i][j - 1] == -1:
+                        corners.add(faces[i][j])
 
-            # first iteration
-            sides = [[faces[0][0]]]
-            num_boundaries_seen = 1
-            i = 1
-            while i < 4 and face_graph[0][i] == -1: # don't infinite loop when face_graph is [[-1, -1, -1, -1]]
-                sides[-1].append(faces[0][i])
-                sides.append([faces[0][i]])
-                num_boundaries_seen += 1
-                i += 1
+            border_vert_map = {} # vert -> vert
+            for i in range(len(face_graph)):
+                for j in range(4):
+                    if face_graph[i][j] == -1:
+                        border_vert_map[faces[i][j]] = faces[i][(j + 1) % 4]
 
-            face_index, prev_face_index = face_graph[0][i], 0
-            while num_boundaries_seen < total_boundaries:
-                i = (face_graph[face_index].index(prev_face_index) + 1) % 4
-                sides[-1].append(faces[face_index][i])
-                i = (i + 1) % 4
-                num_boundaries_seen += 1
-                while face_graph[face_index][i] == -1:
-                    sides[-1].append(faces[face_index][i])
-                    sides.append([faces[face_index][i]])
-                    i = (i + 1) % 4
-                    num_boundaries_seen += 1
-                face_index, prev_face_index = face_graph[face_index][i], face_index
-            return sides[:-1] # hacky fix for extra side bug lol
-
+            sides = []
+            curr_vert = 0
+            while True:
+                if curr_vert in corners:
+                    sides.append([])
+                sides[-1].append((curr_vert, border_vert_map[curr_vert]))
+                curr_vert = border_vert_map[curr_vert]
+                if curr_vert == 0:
+                    break
+            sides = [[edge[0] for edge in side] + [side[-1][1]] for side in sides]
+            return sides
         
         face_graph = decode()
         self.faces, self.num_verts = get_faces(face_graph)
@@ -229,9 +222,9 @@ class Pattern:
 
 # p = Pattern('0102######0304########0403####')
 # p = Pattern('01##########')
-p = Pattern('0102####03040405######0606070207######080408##05####07')
-patch = Patch([[(0, 0, 0), (1, 0, 0), (2, 0, 0), (3, 0, 0)], [(3, 0, 0), (3, 1, 0), (3, 2, 0), (3, 3, 0)], [(3, 3, 0), (2, 3, 0), (1, 3, 0), (0, 3, 0)], [(0, 3, 0), (0, 2, 0), (0, 1, 0), (0, 0, 0)]])
-p.fit(patch)
-print(p.faces)
-print(p.verts)
-print(p.sides)
+# p = Pattern('0102####03040405######0606070207######080408##05####07')
+# patch = Patch([[(0, 0, 0), (1, 0, 0), (2, 0, 0), (3, 0, 0)], [(3, 0, 0), (3, 1, 0), (3, 2, 0), (3, 3, 0)], [(3, 3, 0), (2, 3, 0), (1, 3, 0), (0, 3, 0)], [(0, 3, 0), (0, 2, 0), (0, 1, 0), (0, 0, 0)]])
+# p.fit(patch)
+# print(p.faces)
+# print(p.verts)
+# print(p.sides)
