@@ -147,7 +147,13 @@ class Pattern:
         rotations = get_rotations(side_lengths)
         for i in range(len(rotations)):
             if rotations[i] == patch_side_lengths:
-                return {"rotations": i}
+                return {"rotations": i, 'flip': False}
+
+        side_lengths = side_lengths[::-1] # flip
+        rotations = get_rotations(side_lengths)
+        for i in range(len(rotations)):
+            if rotations[i] == patch_side_lengths:
+                return {"rotations": i, 'flip': True}
 
         # compare the lengths of the sides for all rotations of the pattern
         # for i in range(len(self.sides)):
@@ -158,7 +164,8 @@ class Pattern:
         '''
         p = Pattern('')
         p.num_verts = self.num_verts
-        p.sides = rotate([side.copy() for side in self.sides], params["rotations"])
+        sides = [s[::-1] for s in self.sides[::-1]] if params["flip"] else self.sides
+        p.sides = rotate([side.copy() for side in sides], params["rotations"])
         p.vert_graph = [lst.copy() for lst in self.vert_graph]
         p.faces = [face.copy() for face in self.faces]
         p.verts = [Vertex() for _ in range(p.num_verts)]

@@ -20,6 +20,7 @@ FAKE_DEMO_PATTERN_ENCODINGS = [
     '01####020304##05060607080809######0605070306##0807090408####', # 3x3x3x1
     '0102####030404########0505##02####04', # 3x2x3x2 grid
     '0102######0304######05040305######04', # 2x2x3x3
+    '01####020304####030205040305######04', # 1x2x2x3
 ]
 
 PATTERNS = [Pattern(encoding) for encoding in FAKE_DEMO_PATTERN_ENCODINGS]
