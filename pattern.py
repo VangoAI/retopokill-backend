@@ -20,15 +20,17 @@ class Pattern:
         '''
 
         def decode():
+            CHARS_PER_HEX = 16
+
             if encoding == '':
                 return []
-            face_graph = [[-1] * 4 for _ in range(len(encoding) // 6)]
+            face_graph = [[-1] * 4 for _ in range(len(encoding) // (3 * CHARS_PER_HEX))]
             last_seen = 0
             for i in range(len(face_graph)): # 6 because 2 chars for a hex number times 3 numbers per face
                 for j in range(3): # the string only has 3 numbers per face, the first index is implied
-                    s = encoding[i * 6 + j * 2: i * 6 + j * 2 + 2]
-                    if s != '##':
-                        face_graph[i][j + 1] = int(s, 16) # turn the 2 digits into a decimal
+                    s = encoding[i * (3 * CHARS_PER_HEX) + j * CHARS_PER_HEX: i * (3 * CHARS_PER_HEX) + j * CHARS_PER_HEX + CHARS_PER_HEX]
+                    if s != '#' * CHARS_PER_HEX:
+                        face_graph[i][j + 1] = int(s, 16) # turn the hex digits into a decimal
                         if face_graph[i][j + 1] > last_seen:
                             last_seen = face_graph[i][j + 1]
                             face_graph[last_seen][0] = i # set the first index of the new face to the index of the face that points to it
