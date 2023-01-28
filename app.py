@@ -25,14 +25,12 @@ def get_expanded_patterns():
     matching = []
     for row in res:
         topology_encoding, polychords_encoding = row[0], row[1]
-        print("ENCODINGS:", topology_encoding, polychords_encoding)
         pattern = Pattern.from_encoding(topology_encoding, polychords_encoding)
         params = pattern.feasible(patch)
-        print("PARAMS:", params)
-        # if params is not None:
-        #     expanded_pattern = pattern.expand(params)
-        #     expanded_pattern.fit(patch)
-        #     matching.append(expanded_pattern.to_json())
+        if params is not None:
+            expanded_pattern = pattern.expand(params)
+            expanded_pattern.fit(patch)
+            matching.append(expanded_pattern.to_json())
     return matching
 
 if __name__ == '__main__':
