@@ -32,6 +32,12 @@ class Pattern:
                         if face_graph[i][j + 1] > last_seen:
                             last_seen = face_graph[i][j + 1]
                             face_graph[last_seen][0] = i # set the first index of the new face to the index of the face that points to it
+                # get rid of quads that share 2 edges
+                d = set()
+                for f in face_graph[i]:
+                    if f != -1 and f in d:
+                        raise Exception('topology has 2 quads that share 2 edges')
+                    d.add(f)
             return face_graph
 
         def decode_polychords(encoding):
