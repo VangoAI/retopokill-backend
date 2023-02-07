@@ -309,7 +309,7 @@ class Pattern:
 
         self.verts = laplace_smooth_direct()
 
-        num_iterations = 10
+        num_iterations = min(max(10, self.num_verts // 5), 50)
         for _ in range(num_iterations):
             self.verts = laplace_smooth_iter()
     

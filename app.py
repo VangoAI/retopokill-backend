@@ -29,8 +29,6 @@ def get_expanded_patterns():
             pattern = Pattern.from_encoding(topology_encoding, polychords_encoding)
             params = pattern.feasible(patch)
             if params is not None:
-                print("encoding", topology_encoding, polychords_encoding)
-                print("params", params)
                 expanded_pattern = pattern.expand(params)
                 expanded_pattern.fit(patch)
                 matching.append(expanded_pattern.to_json())
@@ -40,3 +38,4 @@ def get_expanded_patterns():
 
 if __name__ == '__main__':
     app.run()
+    
