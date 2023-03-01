@@ -20,16 +20,16 @@ analytics_db_password = os.getenv('ANALYTICS_DB_PASSWORD')
 
 patches_cur = sqlite3.connect("pattern.db", check_same_thread=False).cursor()
 
+analytics_cur = redshift_connector.connect(
+    host='default.815474491952.us-west-2.redshift-serverless.amazonaws.com',
+    database='analytics',
+    port=5439,
+    user=analytics_db_user,
+    password=analytics_db_password,
+).cursor()
+
 def validate_access(api_key):
     try:
-        analytics_cur = redshift_connector.connect(
-            host='default.815474491952.us-west-2.redshift-serverless.amazonaws.com',
-            database='analytics',
-            port=5439,
-            user=analytics_db_user,
-            password=analytics_db_password,
-        ).cursor()
-
         analytics_cur.execute(f"SELECT key FROM api_keys WHERE key = %s", (api_key,))
         result = analytics_cur.fetchall()
         return len(result) == 1
@@ -40,7 +40,7 @@ def validate_access(api_key):
 def get_expanded_patterns():
     api_key = request.json['key']
 
-    # assert(validate_access(api_key)) # disabled for now
+    assert(validate_access(api_key))
 
     sides = request.json['args']
     patch = Patch(sides)
@@ -66,7 +66,9 @@ def get_expanded_patterns():
 @app.route('/log_event', methods=['POST'])
 def log_event():
     api_key = request.json['key']
-    assert(validate_access(api_key))
+
+    if not validate_access(api_key):
+        return {"success": False, "error": "Invalid API key"}
 
     try:
         analytics_conn = redshift_connector.connect(
