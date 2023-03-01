@@ -31,8 +31,6 @@ def validate_access(api_key):
         )
         analytics_cur = analytics_conn.cursor()
 
-        timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-
         analytics_cur.execute(f"SELECT key FROM api_keys WHERE key = %s", (api_key))
         result = analytics_cur.fetchall()
         analytics_cur.close()
@@ -46,6 +44,7 @@ def validate_access(api_key):
 
 @app.route('/get_expanded_patterns', methods=['POST'])
 def get_expanded_patterns():
+    print("json", request.json)
     api_key = request.json['key']
 
     assert(validate_access(api_key))
@@ -73,8 +72,9 @@ def get_expanded_patterns():
 # analytics
 @app.route('/log_event', methods=['POST'])
 def log_event():
+    print("json", request.json['key'], request.json['args'])
     api_key = request.json['key']
-    assert(validate_access)
+    assert(validate_access(api_key))
 
     try:
         analytics_conn = redshift_connector.connect(
