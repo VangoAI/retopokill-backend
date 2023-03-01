@@ -22,29 +22,22 @@ patches_cur = sqlite3.connect("pattern.db", check_same_thread=False).cursor()
 
 def validate_access(api_key):
     try:
-        analytics_conn = redshift_connector.connect(
+        analytics_cur = redshift_connector.connect(
             host='default.815474491952.us-west-2.redshift-serverless.amazonaws.com',
-            database='api_keys',
+            database='analytics',
             port=5439,
             user=analytics_db_user,
             password=analytics_db_password,
-        )
-        analytics_cur = analytics_conn.cursor()
+        ).cursor()
 
-        analytics_cur.execute(f"SELECT key FROM api_keys WHERE key = %s", (api_key))
+        analytics_cur.execute(f"SELECT key FROM api_keys WHERE key = %s", (api_key,))
         result = analytics_cur.fetchall()
-        analytics_cur.close()
-
-        analytics_conn.commit()
-        analytics_conn.close()
-
         return len(result) == 1
     except Exception as e:
         return False
 
 @app.route('/get_expanded_patterns', methods=['POST'])
 def get_expanded_patterns():
-    print("json", request.json)
     api_key = request.json['key']
 
     assert(validate_access(api_key))
@@ -72,7 +65,6 @@ def get_expanded_patterns():
 # analytics
 @app.route('/log_event', methods=['POST'])
 def log_event():
-    print("json", request.json['key'], request.json['args'])
     api_key = request.json['key']
     assert(validate_access(api_key))
 
